@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -43,7 +44,7 @@ func main() {
 	}
 
 	if in.Field == "" {
-		in.Field = "value"
+		in.Field = in.Env
 	}
 
 	// Check for the "sensitive" value in the JSON input.
@@ -88,5 +89,12 @@ func main() {
 	}
 
 	k := gjson.Get(res, in.Field).String()
-	fmt.Printf(`{"env": {"%s": "%s"}}`, in.Env, k)
+	err = json.NewEncoder(os.Stdout).Encode(map[string]any{
+		"env": map[string]string{
+			in.Env: k,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
